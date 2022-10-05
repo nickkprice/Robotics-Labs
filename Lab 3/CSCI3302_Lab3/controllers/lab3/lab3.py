@@ -36,8 +36,8 @@ for i in range(len(part_names)):
         robot_parts[i].setPosition(float(target_pos[i]))
 
 # Odometry
-pose_x     = -8
-pose_y     = -5
+pose_x     = 0
+pose_y     = 0
 pose_theta = 0
 
 # Rotational Motor Velocity [rad/s]
@@ -58,7 +58,7 @@ class State:
         self.name = name
 state = State('test')
 
-waypoints = [(5,-3,.3)]
+waypoints = [(2.4,-0.4,1), (2.8, 1.2, 0), (4.8, 1.1, 0)]
 wp_prog = 0
 p = 0
 while robot.step(timestep) != -1:
@@ -66,32 +66,49 @@ while robot.step(timestep) != -1:
 
     # STEP 2.1: Calculate error with respect to current and goal position
     
-    goal = [-6, -5, .3]
+    goal = waypoints[wp_prog]
     p = math.sqrt(abs(goal[0] - pose_x)**2 + abs(goal[1] - pose_y)**2)
-    print(p)
+    
+    #print(pose_theta)
     
     # STEP 2.2: Feedback Controller
-    a = math.atan2(goal[1],goal[0])
+
+    a = math.atan2(goal[1] - pose_y,goal[0] - pose_x) - pose_theta
     n = goal[2] - pose_theta
+    print(p,n,a,pose_theta)
     
+    # Gains
+    if (p > .1):
+        g1 = 2
+        g2 = 1
+        g3 = 0
+    else:
+        g1 = 2
+        g2 = 0
+        g3 = 2
     
-    pass
+    dX = g1*p
+    dTheta = g2*a + g3*n
     
     # STEP 1: Inverse Kinematics Equations (vL and vR as a function dX and dTheta)
     # Note that vL and vR in code is phi_l and phi_r on the slides/lecture
-    #vL = (2*dX - dTheta) / 2
-    #vR = (2*dX + dTheta) / 2
+    spr = MAX_SPEED_MS / MAX_SPEED
+    
+    vL = ((2*dX - dTheta) / 2)
+    vR = ((2*dX + dTheta) / 2)
     
     pass
     
     # STEP 2.3: Proportional velocities
-    vL = 2 # Left wheel velocity in rad/s
-    vR = 2 # Right wheel velocity in rad/s
+    #vL = 2 # Left wheel velocity in rad/s
+    #vR = 2 # Right wheel velocity in rad/s
     pass
 
     # STEP 2.4: Clamp wheel speeds
-    pass
-
+    if vL > MAX_SPEED:
+        vL = MAX_SPEED
+    if vR > MAX_SPEED:
+        vR = MAX_SPEED
 
     
     # TODO
@@ -104,11 +121,9 @@ while robot.step(timestep) != -1:
     
 
     distL = vL/MAX_SPEED * MAX_SPEED_MS * timestep/1000.0
-    
     distR = vR/MAX_SPEED * MAX_SPEED_MS * timestep/1000.0
     
     pose_x += (distL+distR) / 2.0 * math.cos(pose_theta)
-    
     pose_y += (distL+distR) / 2.0 * math.sin(pose_theta)
     
     pose_theta += (distR-distL)/AXLE_LENGTH
@@ -116,13 +131,8 @@ while robot.step(timestep) != -1:
      
     
     if pose_theta > 6.28+3.14/2: pose_theta -= 6.28
-    
     if pose_theta < -3.14: pose_theta += 6.28
     
-    
-    robot_parts[MOTOR_LEFT].setVelocity(vL)
-    
-    robot_parts[MOTOR_RIGHT].setVelocity(vR)
     
 
     ########## End Odometry Code ##################
@@ -137,7 +147,11 @@ while robot.step(timestep) != -1:
     # TODO
     # Set robot motors to the desired velocities
 
-    #robot_parts[MOTOR_LEFT].setVelocity(0)
-    #robot_parts[MOTOR_RIGHT].setVelocity(0)
+    robot_parts[MOTOR_LEFT].setVelocity(vL)
+    robot_parts[MOTOR_RIGHT].setVelocity(vR)
+    
+    if p < .1 and abs(n) < .1 and wp_prog < len(waypoints) - 1:
+        print("Next Waypoint")
+        wp_prog += 1
 
     
