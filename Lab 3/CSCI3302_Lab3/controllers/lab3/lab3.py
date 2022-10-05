@@ -36,8 +36,8 @@ for i in range(len(part_names)):
         robot_parts[i].setPosition(float(target_pos[i]))
 
 # Odometry
-pose_x     = 0
-pose_y     = 0
+pose_x     = -8
+pose_y     = -5
 pose_theta = 0
 
 # Rotational Motor Velocity [rad/s]
@@ -65,8 +65,10 @@ while robot.step(timestep) != -1:
     #print(robot_parts[MOTOR_LEFT].getMaxVelocity())
 
     # STEP 2.1: Calculate error with respect to current and goal position
-    goal = waypoints[wp_prog]
+    
+    goal = [-6, -5, .3]
     p = math.sqrt(abs(goal[0] - pose_x)**2 + abs(goal[1] - pose_y)**2)
+    print(p)
     
     # STEP 2.2: Feedback Controller
     a = math.atan2(goal[1],goal[0])
@@ -83,8 +85,8 @@ while robot.step(timestep) != -1:
     pass
     
     # STEP 2.3: Proportional velocities
-    vL = 0 # Left wheel velocity in rad/s
-    vR = 0 # Right wheel velocity in rad/s
+    vL = 2 # Left wheel velocity in rad/s
+    vR = 2 # Right wheel velocity in rad/s
     pass
 
     # STEP 2.4: Clamp wheel speeds
@@ -100,7 +102,27 @@ while robot.step(timestep) != -1:
     # (vL, vR, MAX_SPEED, MAX_SPEED_MS, timestep, AXLE_LENGTH, pose_x, pose_y, pose_theta)
     # Odometry code. Don't change speeds (vL and vR) after this line
     
+
+    distL = vL/MAX_SPEED * MAX_SPEED_MS * timestep/1000.0
     
+    distR = vR/MAX_SPEED * MAX_SPEED_MS * timestep/1000.0
+    
+    pose_x += (distL+distR) / 2.0 * math.cos(pose_theta)
+    
+    pose_y += (distL+distR) / 2.0 * math.sin(pose_theta)
+    
+    pose_theta += (distR-distL)/AXLE_LENGTH
+    
+     
+    
+    if pose_theta > 6.28+3.14/2: pose_theta -= 6.28
+    
+    if pose_theta < -3.14: pose_theta += 6.28
+    
+    
+    robot_parts[MOTOR_LEFT].setVelocity(vL)
+    
+    robot_parts[MOTOR_RIGHT].setVelocity(vR)
     
 
     ########## End Odometry Code ##################
@@ -114,7 +136,8 @@ while robot.step(timestep) != -1:
 
     # TODO
     # Set robot motors to the desired velocities
-    robot_parts[MOTOR_LEFT].setVelocity(0)
-    robot_parts[MOTOR_RIGHT].setVelocity(0)
+
+    #robot_parts[MOTOR_LEFT].setVelocity(0)
+    #robot_parts[MOTOR_RIGHT].setVelocity(0)
 
     
