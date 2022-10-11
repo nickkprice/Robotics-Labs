@@ -64,6 +64,9 @@ lidar.enablePointCloud()
 # and there are LIDAR_ANGLE_BINS. An easy way to generate the
 # array that contains all the angles is to use linspace from
 # the numpy package.
+lidar_sensor_readings = []
+lidar_offsets = np.linspace(-LIDAR_ANGLE_RANGE/2, LIDAR_ANGLE_RANGE/2, LIDAR_ANGLE_BINS)
+print(angles)
 
 
 
