@@ -264,7 +264,7 @@ while robot.step(timestep) != -1 and mode != 'planner':
             vR = 0
         elif key == ord('S'):
             # Part 1.4: Filter map and save to filesystem
-            mask = map > .15
+            mask = map > .007
             filtered = np.multiply(mask, 1)
             np.save("map.npy",filtered)
             np.save("backup.npy", map)
